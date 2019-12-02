@@ -1,0 +1,22 @@
+{
+  "name": "@raychee/utils",
+  "version": "0.1.1",
+  "description": "",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Raychee/utils.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Raychee/utils/issues"
+  },
+  "homepage": "https://github.com/Raychee/utils#readme",
+  "dependencies": {
+    "bson": "^4.0.2",
+    "json-stable-stringify": "^1.0.1",
+    "lodash": "^4.17.15",
+    "request-promise-native": "^1.0.8"
+  }
+}
