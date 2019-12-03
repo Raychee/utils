@@ -298,12 +298,14 @@ function stringifyWith(args, {delimiter = '', transform} = {}) {
         }
         if (value instanceof Error) {
             return errorToString(value);
+        } else if (value instanceof Date) {
+            return value.toLocaleString();
         } else if (typeof value === 'object' && ['url', 'headers', 'status', 'statusText'].every(p => typeof value[p] === 'function')) {
             return `${value.url()} -> [${value.status()}${value.statusText()}] ${_stringify(value.headers())}`;
         } else if (typeof value === 'object') {
             return safeJSONStringify(value, (v) => v.toString());
         } else {
-            return value;
+            return value.toString();
         }
     }
 
