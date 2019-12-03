@@ -3,7 +3,7 @@ const path = require('path');
 const readline = require('readline');
 const {promisify} = require('util');
 
-const {get, isObjectLike, isPlainObject, isEmpty, escapeRegExp} = require('lodash');
+const {get, isObject, isObjectLike, isPlainObject, isEmpty, escapeRegExp} = require('lodash');
 const {ObjectId} = require('bson');
 const stableStringify = require('json-stable-stringify');
 const request = require('request-promise-native');
@@ -136,6 +136,10 @@ function flatten(obj, {delimiter = '.', prefix = ''} = {}) {
     }
     _flatten(prefix, obj);
     return flat;
+}
+
+function isThenable(obj) {
+    return isObject(obj) && typeof obj.then === 'function' && obj.then.length === 2;
 }
 
 function random(min, max) {
@@ -403,6 +407,7 @@ module.exports = {
     deepEqual,
     merge2Level,
     flatten,
+    isThenable,
     random,
     randomInt,
     randomString,
