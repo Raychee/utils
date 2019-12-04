@@ -4,7 +4,6 @@ const readline = require('readline');
 const {promisify} = require('util');
 
 const {get, isObject, isObjectLike, isPlainObject, isEmpty, escapeRegExp} = require('lodash');
-const {ObjectId} = require('bson');
 const stableStringify = require('json-stable-stringify');
 const request = require('request-promise-native');
 const {RequestError} = require('request-promise-native/errors');
@@ -103,11 +102,11 @@ function deepEqual(a, b) {
         }
         return true;
     }
-    if (typeof a === 'object' && typeof b === 'object' && a.constructor === Object && b.constructor === Object) {
+    if (isPlainObject(a) && isPlainObject(b)) {
         return isEmpty(diff(a, b));
     }
     if (a instanceof Date && b instanceof Date && a.getTime() === b.getTime()) return true;
-    if (a instanceof ObjectId && b instanceof ObjectId && a.equals(b)) return true;
+    if (isObjectLike(a) && typeof a.equals === 'function' && a.equals(b)) return true;
     return false;
 }
 
