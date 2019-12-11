@@ -303,6 +303,8 @@ function stringifyWith(args, {delimiter = '', transform} = {}) {
             return `${value.url()} -> [${value.status()}${value.statusText()}] ${_stringify(value.headers())}`;
         } else if (typeof value === 'object') {
             return safeJSONStringify(value, (v) => v.toString());
+        } else if (value === undefined || value === null) {
+            return '';
         } else {
             return value.toString();
         }
