@@ -15,15 +15,16 @@ function sleep(ms) {
 
 const readdir = promisify(fs.readdir);
 const stat = promisify(fs.stat);
-async function* walk(dir) {
-    for (const file of await readdir(dir)) {
-        const filePath = path.join(dir, file);
-        const stats = await stat(filePath);
-        if (stats.isDirectory()) {
-            yield* walk(filePath);
-        } else if (stats.isFile()) {
-            yield filePath;
+
+async function* walk(filePath) {
+    const stats = await stat(filePath);
+    if (stats.isDirectory()) {
+        for (const file of await readdir(filePath)) {
+            const subPath = path.join(filePath, file);
+            yield* walk(subPath);
         }
+    } else if (stats.isFile()) {
+        yield filePath;
     }
 }
 
@@ -123,6 +124,7 @@ function flatten(obj, {delimiter = '.', prefix = ''} = {}) {
         return obj;
     }
     const flat = {};
+
     function _flatten(prefix, obj) {
         for (const [p, v] of Object.entries(obj)) {
             const prop = `${prefix}${prefix ? delimiter : ''}${p}`;
@@ -133,6 +135,7 @@ function flatten(obj, {delimiter = '.', prefix = ''} = {}) {
             }
         }
     }
+
     _flatten(prefix, obj);
     return flat;
 }
@@ -196,6 +199,7 @@ function dedup(fn, {key = (...args) => args, within = 0} = {}) {
             delete states[k];
         }
     }
+
     return async function (...args) {
         const k = stableStringify(key(...args));
         purge(k);
@@ -240,7 +244,10 @@ function limit(fn, limit) {
     };
 }
 
-function retry(fn, retry = 0, {delay = 0, delayRandomize = 0, retryDelayFactor = 1, catch: catch_ = () => {}} = {}) {
+function retry(fn, retry = 0, {
+    delay = 0, delayRandomize = 0, retryDelayFactor = 1, catch: catch_ = () => {
+    }
+} = {}) {
     let trial = 0;
     return async function (...args) {
         while (true) {
@@ -314,7 +321,7 @@ function stringifyWith(args, {delimiter = '', transform} = {}) {
 }
 
 function errorToString(err) {
-    let str = `${err.name ? `${err.name}: ` : ''}${err.code ? `[${err.code}] `: ''}`;
+    let str = `${err.name ? `${err.name}: ` : ''}${err.code ? `[${err.code}] ` : ''}`;
     const graphqlErrs = get(err, ['networkError', 'result', 'errors'], []);
     if (graphqlErrs.length > 0) {
         str += `${err.message} - ${graphqlErrs.map(e => `[${e.extensions.code}] ${e.message}`).join(' - ')}`;
