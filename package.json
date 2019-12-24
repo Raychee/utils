@@ -1,6 +1,6 @@
 {
   "name": "@raychee/utils",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "",
   "main": "index.js",
   "repository": {
@@ -16,6 +16,7 @@
   "dependencies": {
     "json-stable-stringify": "^1.0.1",
     "lodash": "^4.17.15",
+    "request": "^2.88.0",
     "request-promise-native": "^1.0.8"
   }
 }

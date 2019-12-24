@@ -9,6 +9,10 @@ const request = require('request-promise-native');
 const {RequestError} = require('request-promise-native/errors');
 
 
+/**
+ * @param ms {number}
+ * @returns {Promise<void>}
+ */
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -16,6 +20,10 @@ function sleep(ms) {
 const readdir = promisify(fs.readdir);
 const stat = promisify(fs.stat);
 
+/**
+ * @param filePath {string}
+ * @returns {AsyncIterableIterator<string>}
+ */
 async function* walk(filePath) {
     const stats = await stat(filePath);
     if (stats.isDirectory()) {
@@ -406,6 +414,80 @@ class BatchLoader {
 }
 
 
+class Cache {
+
+    /**
+     * @param {Object} [options]
+     * @param {number} [options.ttl] - TTL in milliseconds
+     * @param {number} [options.maxSize]
+     */
+    constructor(options = {}) {
+        this.options = options;
+        this.store = {};
+        this.queue = [];
+
+        this._expireTimer = undefined;
+    }
+
+    /**
+     * @param {string} key
+     * @param {*} value
+     */
+    put(key, value) {
+        if (key in this.store) {
+            this.store[key] = value;
+            const index = this.queue.findIndex(e => e.key === key);
+            const [entry] = this.queue.splice(index, 1);
+            entry.value = value;
+            entry.ts = Date.now();
+            this.queue.push(entry);
+            if (index === 0) {
+                this._expire();
+            }
+        } else {
+            if (this.queue.length >= this.options.maxSize) {
+                const {key} = this.queue.shift();
+                delete this.store[key];
+                this._expire();
+            }
+            this.store[key] = value;
+            this.queue.push({key, value, ts: Date.now()});
+            if (this.queue.length === 1) {
+                this._expire();
+            }
+        }
+        console.log(`put(${key}, ${value}), store = ${JSON.stringify(this.store)}, queue = ${JSON.stringify(this.queue)}`);
+    }
+
+    /**
+     * @param {string} key
+     * @return {*}
+     */
+    get(key) {
+        return this.store[key];
+    }
+
+    _expire() {
+        if (this.queue.length <= 0) return;
+        const {ttl} = this.options;
+        if (!ttl) return;
+        if (this._expireTimer) {
+            console.log('clear timeout');
+            clearTimeout(this._expireTimer);
+        }
+        const [{ts}] = this.queue;
+        this._expireTimer = setTimeout(() => {
+            const {key} = this.queue.shift();
+            delete this.store[key];
+            console.log(`expire pop ${key}, store = ${JSON.stringify(this.store)}, queue = ${JSON.stringify(this.queue)}`);
+            this._expireTimer = undefined;
+            this._expire();
+        }, ts + ttl - Date.now());
+    }
+
+}
+
+
 module.exports = {
     sleep,
     walk,
@@ -436,4 +518,5 @@ module.exports = {
     replaceAll,
     input,
     BatchLoader,
+    Cache,
 };
