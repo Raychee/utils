@@ -456,7 +456,6 @@ class Cache {
                 this._expire();
             }
         }
-        console.log(`put(${key}, ${value}), store = ${JSON.stringify(this.store)}, queue = ${JSON.stringify(this.queue)}`);
     }
 
     /**
@@ -472,14 +471,12 @@ class Cache {
         const {ttl} = this.options;
         if (!ttl) return;
         if (this._expireTimer) {
-            console.log('clear timeout');
             clearTimeout(this._expireTimer);
         }
         const [{ts}] = this.queue;
         this._expireTimer = setTimeout(() => {
             const {key} = this.queue.shift();
             delete this.store[key];
-            console.log(`expire pop ${key}, store = ${JSON.stringify(this.store)}, queue = ${JSON.stringify(this.queue)}`);
             this._expireTimer = undefined;
             this._expire();
         }, ts + ttl - Date.now());
