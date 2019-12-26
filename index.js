@@ -67,6 +67,7 @@ function clear(obj) {
     for (const property of Object.keys(obj)) {
         delete obj[property];
     }
+    return obj;
 }
 
 function shrink(obj) {
@@ -79,6 +80,7 @@ function shrink(obj) {
             }
         }
     }
+    return obj;
 }
 
 function diff(old, new_) {
