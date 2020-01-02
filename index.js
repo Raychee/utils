@@ -335,10 +335,11 @@ function errorToString(err) {
     const graphqlErrs = get(err, ['networkError', 'result', 'errors'], []);
     if (graphqlErrs.length > 0) {
         str += `${err.message} - ${graphqlErrs.map(e => `[${e.extensions.code}] ${e.message}`).join(' - ')}`;
-    } else if (err.stack) {
-        str += `${err.stack}\n`;
     } else {
         str += err.message;
+        if (err.stack) {
+            str += `${err.stack.slice(err.stack.indexOf('\n'))}\n`;
+        }
     }
     return str;
 }
