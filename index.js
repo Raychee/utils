@@ -509,7 +509,7 @@ class Runnable {
 
     constructor() {
         this.running = undefined;
-        this.stopping = false;
+        this.stopping = undefined;
     }
 
     async start(options = {}) {
@@ -529,20 +529,23 @@ class Runnable {
     }
 
     async stop(options = {}) {
-        const {waitUntilStop = false} = options;
-        this.stopping = true;
+        const {waitUntilStop = false, ...opts} = options;
+        if (this.stopping) {
+            this.stopping(opts);
+        }
         if (waitUntilStop) {
             this.waitUntilStop();
         }
     }
 
-    async run(opts) {
+    async run() {
     }
 
-    async execute(opts) {
-        this.stopping = false;
-        await this.run(opts);
+    async execute(options) {
+        const signal = new Promise(resolve => this.stopping = resolve);
+        await this.run({options, signal});
         this.running = undefined;
+        this.stopping = undefined;
     }
 
 }
