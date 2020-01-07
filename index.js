@@ -512,9 +512,10 @@ class Runnable {
         this.stopping = false;
     }
 
-    async start({waitUntilStop = false} = {}) {
+    async start(options = {}) {
+        const {waitUntilStop = false, ...opts} = options;
         if (!this.running) {
-            this.running = this.execute();
+            this.running = this.execute(opts);
         }
         if (waitUntilStop) {
             await this.waitUntilStop();
@@ -527,19 +528,20 @@ class Runnable {
         }
     }
 
-    async stop({waitUntilStop = false} = {}) {
+    async stop(options = {}) {
+        const {waitUntilStop = false} = options;
         this.stopping = true;
         if (waitUntilStop) {
             this.waitUntilStop();
         }
     }
 
-    async run() {
+    async run(opts) {
     }
 
-    async execute() {
+    async execute(opts) {
         this.stopping = false;
-        await this.run();
+        await this.run(opts);
         this.running = undefined;
     }
 
