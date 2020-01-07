@@ -150,6 +150,23 @@ function flatten(obj, {delimiter = '.', prefix = ''} = {}) {
     return flat;
 }
 
+function readOnly(obj, errType = Error) {
+    return new Proxy(obj, {
+        get(target, p) {
+            let v = target[p];
+            if (typeof v === 'function') v = v.bind(target);
+            if (isObject(v)) {
+                return readOnly(v);
+            } else {
+                return v;
+            }
+        },
+        set() {
+            throw new errType('this object is read only');
+        },
+    });
+}
+
 function isThenable(obj) {
     return isObject(obj) && typeof obj.then === 'function' && obj.then.length === 2;
 }
@@ -499,6 +516,7 @@ module.exports = {
     deepEqual,
     merge2Level,
     flatten,
+    readOnly,
     isThenable,
     random,
     randomInt,
