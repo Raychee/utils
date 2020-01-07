@@ -505,6 +505,47 @@ class Cache {
 }
 
 
+class Runnable {
+
+    constructor() {
+        this.running = undefined;
+        this.stopping = false;
+    }
+
+    async start({waitUntilStop = false} = {}) {
+        if (!this.running) {
+            this.running = this.execute();
+        }
+        if (waitUntilStop) {
+            await this.waitUntilStop();
+        }
+    }
+
+    async waitUntilStop() {
+        if (this.running) {
+            return this.running;
+        }
+    }
+
+    async stop({waitUntilStop = false} = {}) {
+        this.stopping = true;
+        if (waitUntilStop) {
+            this.waitUntilStop();
+        }
+    }
+
+    async run() {
+    }
+
+    async execute() {
+        this.stopping = false;
+        await this.run();
+        this.running = undefined;
+    }
+
+}
+
+
 module.exports = {
     sleep,
     walk,
@@ -537,4 +578,5 @@ module.exports = {
     input,
     BatchLoader,
     Cache,
+    Runnable,
 };
