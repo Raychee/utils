@@ -13,7 +13,11 @@ describe('test', () => {
 
     test('readOnly', () => {
 
-        const obj = readOnly({a: 1, b: {c: 2, d: [3, 4]}, e: function () {return this.a;}});
+        const obj = readOnly({
+            a: 1, b: {c: 2, d: [3, 4]}, e: function () {
+                return this.a;
+            }
+        });
         expect(obj.a).toBe(1);
         expect(() => obj.a = 3).toThrow('this object is read only');
         expect(obj.b.c).toBe(2);
@@ -25,18 +29,76 @@ describe('test', () => {
 
     test('Runnable', async () => {
 
-        let p1 = undefined, v1 = undefined;
-        const r1 = new class extends Runnable {
-            async run({options, signal}) {
-                p1 = options;
-                v1 = await signal;
+        let p = undefined, v = undefined;
+        let r = new Runnable(
+            async ({options, signal}) => {
+                await sleep(100);
+                p = options;
+                v = await signal;
+                p = 1;
+            });
+        await r.start({x: 1});
+        expect(p).toBeUndefined();
+        expect(v).toBeUndefined();
+        await r.waitForReady();
+        expect(p).toStrictEqual({x: 1});
+        expect(v).toBeUndefined();
+        await r.stop({y: 2});
+        expect(p).toStrictEqual({x: 1});
+        expect(v).toBeUndefined();
+        await r.waitForStop();
+        expect(p).toBe(1);
+        expect(v).toStrictEqual({y: 2});
+
+        p = undefined;
+        v = undefined;
+        r = new class extends Runnable {
+            async run({options}) {
+                p = options;
+                v = 1;
             }
         }();
-        await r1.start({x: 1});
-        await r1.stop({y: 2});
-        expect(p1).toStrictEqual({x: 1});
-        expect(v1).toStrictEqual({y: 2});
+        await r.start({waitForStop: true, x: 1});
+        expect(p).toStrictEqual({x: 1});
+        expect(v).toBe(1);
 
+        p = undefined;
+        v = undefined;
+        r = new class extends Runnable {
+            async run({options, signal}) {
+                p = options;
+                throw new Error('error before ready');
+            }
+        }();
+        await r.start({x: 1});
+        expect(r.waitForReady()).rejects.toThrow('error before ready');
+        expect(p).toStrictEqual({x: 1});
+        expect(r.waitForStop()).rejects.toThrow('error before ready');
+
+        p = undefined;
+        v = undefined;
+        r = new class extends Runnable {
+            async run({options, signal}) {
+                p = options;
+                v = await signal;
+                throw new Error('error after ready');
+            }
+        }();
+        await r.start({x: 1});
+        await r.waitForReady();
+        expect(p).toStrictEqual({x: 1});
+        expect(v).toBeUndefined();
+        await r.stop({y: 2});
+        let throws = false;
+        try {
+            await r.waitForStop();
+        } catch (e) {
+            expect(e.message).toBe('error after ready');
+            throws = true;
+        }
+        if (!throws) throw new Error('r.waitForStop didn\'t throw an error');
+        expect(p).toStrictEqual({x: 1});
+        expect(v).toStrictEqual({y: 2});
     });
 
 });

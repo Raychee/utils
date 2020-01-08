@@ -507,45 +507,96 @@ class Cache {
 
 class Runnable {
 
-    constructor() {
+    /**
+     * @callback Then
+     * @param {function} onFulfilled
+     * @param {function} onRejected
+     * @return {Promise<*>}
+     */
+    /**
+     * @typedef {object} Thenable
+     * @property {Then} Thenable.then
+     */
+    /**
+     * @callback RunFn
+     * @param {object} input
+     * @param {object} input.options
+     * @param {Thenable} input.signal
+     */
+    /**
+     * @param {RunFn} [fn]
+     */
+    constructor(fn) {
+        this.fn = fn;
+        this.ready = undefined;
         this.running = undefined;
         this.stopping = undefined;
+        this.error = undefined;
     }
 
     async start(options = {}) {
-        const {waitUntilStop = false, ...opts} = options;
+        const {waitForReady = false, waitForStop = false, ...opts} = options;
         if (!this.running) {
-            this.running = this.execute(opts);
+            this.error = undefined;
+            this.ready = new Promise((resolve, reject) => {
+                const stopping = new Promise(resolve => this.stopping = resolve);
+                const signal = {
+                    then: (onRes, onRej) => {
+                        resolve();
+                        return stopping.then(onRes, onRej);
+                    }
+                };
+                this.running = this.run({options: opts, signal})
+                    .then(
+                        (ret) => {resolve(); return ret;},
+                        (error) => {reject(error); this.error = error; throw error;}
+                    )
+                    .finally(() => {
+                        this.ready = undefined;
+                        this.running = undefined;
+                        this.stopping = undefined;
+                    });
+            });
         }
-        if (waitUntilStop) {
-            await this.waitUntilStop();
+        if (waitForReady) {
+            await this.waitForReady();
+        }
+        if (waitForStop) {
+            return this.waitForStop();
+        }
+    }
+    
+    async waitForReady() {
+        if (this.ready) {
+            return this.ready;
+        } else if (this.error) {
+            throw this.error;
         }
     }
 
-    async waitUntilStop() {
+    async waitForStop() {
+        await this.waitForReady();
         if (this.running) {
             return this.running;
+        } else if (this.error) {
+            throw this.error;
         }
     }
 
     async stop(options = {}) {
-        const {waitUntilStop = false, ...opts} = options;
+        const {waitForStop = false, ...opts} = options;
         if (this.stopping) {
             this.stopping(opts);
         }
-        if (waitUntilStop) {
-            this.waitUntilStop();
+        if (waitForStop) {
+            return this.waitForStop();
         }
     }
 
-    async run() {
-    }
-
-    async execute(options) {
-        const signal = new Promise(resolve => this.stopping = resolve);
-        await this.run({options, signal});
-        this.running = undefined;
-        this.stopping = undefined;
+    async run(arg) {
+        if (this.fn) {
+            return this.fn(arg);
+        }
     }
 
 }
