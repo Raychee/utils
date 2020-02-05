@@ -224,7 +224,7 @@ function dedup(fn, {key = (...args) => args, within = 0} = {}) {
         const now = Date.now();
         const expiredKeys = Object.keys(states).filter(k => {
             const state = states[k];
-            return state.isResolved && state.expireAt >= now;
+            return state.isResolved && state.expireAt <= now;
         });
         for (const k of expiredKeys) {
             delete states[k];

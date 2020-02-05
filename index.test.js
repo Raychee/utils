@@ -11,6 +11,53 @@ const {
 
 describe('test', () => {
 
+    test('dedup', async () => {
+
+        let i = 0;
+        let fn = dedup(async () => {
+            await sleep(0);
+            return i++;
+        });
+        let [v1, v2] = await Promise.all([fn(), fn()]);
+        expect(v1).toBe(0);
+        expect(v2).toBe(0);
+        expect(i).toBe(1);
+
+        fn = dedup(async (i) => {
+            await sleep(0);
+            return i;
+        });
+        [v1, v2] = await Promise.all([fn(1), fn(2)]);
+        expect(v1).toBe(1);
+        expect(v2).toBe(2);
+
+        fn = dedup(async (i) => {
+            await sleep(0);
+            return i;
+        }, {key: null});
+        [v1, v2] = await Promise.all([fn(1), fn(2)]);
+        expect(v1).toBe(1);
+        expect(v2).toBe(1);
+
+        i = 0;
+        fn = dedup(async () => {
+            await sleep(0);
+            return i++;
+        }, {within: 100});
+        v1 = await fn();
+        expect(v1).toBe(0);
+        expect(i).toBe(1);
+        await sleep(10);
+        v1 = await fn();
+        expect(v1).toBe(0);
+        expect(i).toBe(1);
+        await sleep(200);
+        v1 = await fn();
+        expect(v1).toBe(1);
+        expect(i).toBe(2);
+
+    });
+
     test('readOnly', () => {
 
         const obj = readOnly({
