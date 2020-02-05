@@ -220,27 +220,30 @@ function dedup(fn, {key = (...args) => args, within = 0} = {}) {
     const states = {};
     if (!key) key = () => [];
 
-    function purge(k) {
-        const state = states[k];
-        if (state && state.isResolved && state.createAt && state.createAt < Date.now() - within) {
+    function purge() {
+        const now = Date.now();
+        const expiredKeys = Object.keys(states).filter(k => {
+            const state = states[k];
+            return state.isResolved && state.expireAt >= now;
+        });
+        for (const k of expiredKeys) {
             delete states[k];
         }
     }
 
     return async function (...args) {
         const k = stableStringify(key(...args));
-        purge(k);
+        purge();
         const state = states[k] || {};
         states[k] = state;
-        if (!state.createAt) {
-            state.createAt = Date.now();
+        if (!state.expireAt) {
+            state.expireAt = Date.now() + within;
             state.promise = fn.apply(this, args);
         } else if (!state.promise) {
             throw new Error(`potential recursive call of a deduped async function ${fn.name}(${args.join(', ')})`);
         }
         const ret = await state.promise;
         state.isResolved = true;
-        purge(k);
         return ret;
     };
 }
