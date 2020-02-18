@@ -242,9 +242,11 @@ function dedup(fn, {key = (...args) => args, within = 0} = {}) {
         } else if (!state.promise) {
             throw new Error(`potential recursive call of a deduped async function ${fn.name}(${args.join(', ')})`);
         }
-        const ret = await state.promise;
-        state.isResolved = true;
-        return ret;
+        try {
+            return await state.promise;
+        } finally {
+            state.isResolved = true;
+        }
     };
 }
 

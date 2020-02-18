@@ -56,6 +56,13 @@ describe('test', () => {
         expect(v1).toBe(1);
         expect(i).toBe(2);
 
+        i = 0;
+        fn = dedup(async () => {
+            await sleep(0);
+            throw new Error((i++).toString());
+        });
+        await expect(fn()).rejects.toThrow('0');
+        await expect(fn()).rejects.toThrow('1');
     });
 
     test('readOnly', () => {
