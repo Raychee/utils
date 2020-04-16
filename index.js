@@ -4,7 +4,7 @@ const readline = require('readline');
 const {promisify} = require('util');
 
 const {get, isObject, isObjectLike, isPlainObject, isEmpty, escapeRegExp} = require('lodash');
-const stableStringify = require('json-stable-stringify');
+const stableStringify = require('fast-json-stable-stringify');
 const request = require('request-promise-native');
 const {RequestError} = require('request-promise-native/errors');
 
@@ -232,7 +232,7 @@ function dedup(fn, {key = (...args) => args, within = 0} = {}) {
     }
 
     return async function (...args) {
-        const k = stableStringify(key(...args));
+        const k = stableStringify(key(...args), {cycles: true});
         purge();
         const state = states[k] || {};
         states[k] = state;

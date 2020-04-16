@@ -63,6 +63,15 @@ describe('test', () => {
         });
         await expect(fn()).rejects.toThrow('0');
         await expect(fn()).rejects.toThrow('1');
+
+        fn = dedup(async (i) => {
+            await sleep(0);
+            return i + 1;
+        }, {key: (i) => i % 2});
+        [v1, v2, v3] = await Promise.all([fn(0), fn(1), fn(2)]);
+        expect(v1).toBe(1);
+        expect(v2).toBe(2);
+        expect(v3).toBe(1);
     });
 
     test('readOnly', () => {
