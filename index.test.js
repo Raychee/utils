@@ -1,9 +1,80 @@
 const {
-    sleep, readOnly, dedup, Runnable
+    sleep,
+    isThenable,
+    dedup,
+    limit,
+    BatchLoader,
+    Runnable,
+
+    safeJSON,
+    clear,
+    shrink,
+    diff,
+    traverse,
+    deepEqual,
+    merge2Level,
+    flatten,
+    readOnly,
+
+    safeJSONStringify,
+    stringify,
+    stringifyWith,
+    errorToString,
+    replaceAll,
+
+    random,
+    randomInt,
+    randomString,
+    randomMacAddress,
+    ensureThunk,
+    ensureThunkCall,
+    ensureThunkSync,
+    ensureThunkCallSync,
+    retry,
+    timeout,
+    Cache,
 } = require('.');
 
 
 describe('test', () => {
+    
+    test('diff', () => {
+        let d = diff(
+            {a: 1, b: 2, c: {d: 3, e: [4, 5], f: 6}},
+            {a: 1, b: 3, c: {d: 4, e: [5], f: 6}},
+        );
+        expect(d).toStrictEqual({b: 3, c: {d: 4, e: [5], f: 6}});
+
+        d = diff(
+            {a: 1, b: 2, c: {d: 3, e: [4, 5], f: 6}},
+            {a: 1, b: 3, c: {d: 4, e: [5], f: 6}},
+            {recursive: true}
+        );
+        expect(d).toStrictEqual({b: 3, c: {d: 4, e: [5]}});
+    });
+
+    test('traverse', () => {
+        let o = {a: 1, b: 2, c: {d: '3', e: [4, 5], f: new Date(0)}};
+        const traversed = [...traverse(o)];
+        expect(traversed).toStrictEqual([
+            [['a'], 1],
+            [['b'], 2],
+            [['c', 'd'], '3'],
+            [['c', 'e'], [4, 5]],
+            [['c', 'f'], new Date(0)],
+        ]);
+    });
+
+    test('flatten', () => {
+        let o = {a: 1, b: 2, c: {d: '3', e: [4, 5], f: new Date(0)}};
+        expect(flatten(o)).toStrictEqual({
+            'a': 1,
+            'b': 2,
+            'c.d': '3',
+            'c.e': [4, 5],
+            'c.f': new Date(0)
+        });
+    });
 
     test('dedup', async () => {
 
