@@ -1,12 +1,6 @@
 const {
-    sleep, walk,
-    safeJSON, safeJSONStringify, clear, shrink, diff, deepEqual, merge2Level, flatten, readOnly,
-    isThenable, random, randomInt, randomString, randomMacAddress,
-    ensureThunk, ensureThunkCall, ensureThunkSync, ensureThunkCallSync,
-    dedup, limit, retry, requestWithTimeout,
-    stringify, stringifyWith, errorToString, replaceAll, input,
-    BatchLoader, Cache, Runnable
-} = require('./index');
+    sleep, readOnly, dedup, Runnable
+} = require('.');
 
 
 describe('test', () => {
