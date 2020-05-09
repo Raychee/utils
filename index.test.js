@@ -11,8 +11,8 @@ const {
     shrink,
     diff,
     traverse,
-    deepEqual,
-    merge2Level,
+    isEqual,
+    merge,
     flatten,
     readOnly,
 
@@ -37,17 +37,33 @@ const {
 
 
 describe('test', () => {
-    
+
+    test('shrink', () => {
+        let o = {a: 1, b: {c: null, d: undefined, e: [null, 1], f: {g: 3, h: undefined}}, i: {j: null}};
+        expect(shrink(o, {inplace: false})).toStrictEqual(
+            {a: 1, b: {e: [null, 1], f: {g: 3}}, i: {}}
+        );
+        expect(o).toStrictEqual(
+            {a: 1, b: {c: null, d: undefined, e: [null, 1], f: {g: 3, h: undefined}}, i: {j: null}}
+        );
+        expect(shrink(o, {inplace: true})).toStrictEqual(
+            {a: 1, b: {e: [null, 1], f: {g: 3}}, i: {}}
+        );
+        expect(o).toStrictEqual(
+            {a: 1, b: {e: [null, 1], f: {g: 3}}, i: {}}
+        );
+    });
+
     test('diff', () => {
         let d = diff(
-            {a: 1, b: 2, c: {d: 3, e: [4, 5], f: 6}},
-            {a: 1, b: 3, c: {d: 4, e: [5], f: 6}},
+            {a: 1, b: 2, c: {d: 3, e: [4, 5], f: 6, g: {x: 7}}},
+            {a: 1, b: 3, c: {d: 4, e: [5], f: 6, g: {x: 7}}},
         );
-        expect(d).toStrictEqual({b: 3, c: {d: 4, e: [5], f: 6}});
+        expect(d).toStrictEqual({b: 3, c: {d: 4, e: [5], f: 6, g: {x: 7}}});
 
         d = diff(
-            {a: 1, b: 2, c: {d: 3, e: [4, 5], f: 6}},
-            {a: 1, b: 3, c: {d: 4, e: [5], f: 6}},
+            {a: 1, b: 2, c: {d: 3, e: [4, 5], f: 6, g: {x: 7}}},
+            {a: 1, b: 3, c: {d: 4, e: [5], f: 6, g: {x: 7}}},
             {recursive: true}
         );
         expect(d).toStrictEqual({b: 3, c: {d: 4, e: [5]}});
@@ -65,6 +81,41 @@ describe('test', () => {
         ]);
     });
 
+    test('merge', () => {
+        let a = {a: 1, b: 2, c: {d: '3', e: [4], f: new Date(0), g: {h: '10'}}};
+        let b = {a: 2, g: 9, c: {e: [4, 5], f: new Date(1), g: {i: '11'}}};
+        
+        expect(merge(a, b, {inplace: false, depth: 0})).toStrictEqual(
+            {a: 2, b: 2, g: 9, c: {e: [4, 5], f: new Date(1), g: {i: '11'}}}
+        );
+        expect(merge(a, b, {inplace: false, depth: 1})).toStrictEqual(
+            {a: 2, b: 2, g: 9, c: {d: '3', e: [4, 5], f: new Date(1), g: {i: '11'}}}
+        );
+        expect(merge(a, b, {inplace: false, depth: 2})).toStrictEqual(
+            {a: 2, b: 2, g: 9, c: {d: '3', e: [4, 5], f: new Date(1), g: {h: '10', i: '11'}}}
+        );
+        expect(a).toStrictEqual({a: 1, b: 2, c: {d: '3', e: [4], f: new Date(0), g: {h: '10'}}});
+
+
+        a = {a: 1, b: 2, c: {d: '3', e: [4], f: new Date(0), g: {h: '10'}}};
+        expect(merge(a, b, {inplace: true, depth: 0})).toStrictEqual(
+            {a: 2, b: 2, g: 9, c: {e: [4, 5], f: new Date(1), g: {i: '11'}}}
+        );
+        expect(a).toStrictEqual({a: 2, b: 2, g: 9, c: {e: [4, 5], f: new Date(1), g: {i: '11'}}});
+        
+        a = {a: 1, b: 2, c: {d: '3', e: [4], f: new Date(0), g: {h: '10'}}};
+        expect(merge(a, b, {inplace: true, depth: 1})).toStrictEqual(
+            {a: 2, b: 2, g: 9, c: {d: '3', e: [4, 5], f: new Date(1), g: {i: '11'}}}
+        );
+        expect(a).toStrictEqual({a: 2, b: 2, g: 9, c: {d: '3', e: [4, 5], f: new Date(1), g: {i: '11'}}});
+
+        a = {a: 1, b: 2, c: {d: '3', e: [4], f: new Date(0), g: {h: '10'}}};
+        expect(merge(a, b, {inplace: true, depth: 2})).toStrictEqual(
+            {a: 2, b: 2, g: 9, c: {d: '3', e: [4, 5], f: new Date(1), g: {h: '10', i: '11'}}}
+        );
+        expect(a).toStrictEqual({a: 2, b: 2, g: 9, c: {d: '3', e: [4, 5], f: new Date(1), g: {h: '10', i: '11'}}});
+    });
+    
     test('flatten', () => {
         let o = {a: 1, b: 2, c: {d: '3', e: [4, 5], f: new Date(0)}};
         expect(flatten(o)).toStrictEqual({
@@ -152,6 +203,30 @@ describe('test', () => {
         expect(() => obj.b.d = 5).toThrow('this object is read only');
         expect(obj.e()).toBe(1);
         expect(() => obj.e.name = 'newName').toThrow('this object is read only');
+
+    });
+
+    test('BatchLoader', async () => {
+        let count = 0;
+        let b = new BatchLoader(async (values) => {
+            count++;
+            return values.map(v => v + 1);
+        }, {maxSize: 3, maxWait: 0});
+        let r = await Promise.all([b.load(1), b.load(2), b.load(3), b.load(4)]);
+        expect(count).toBe(2);
+        expect(r).toStrictEqual([2, 3, 4, 5]);
+
+        let concurrency = 0, maxConcurrency = 0;
+        b = new BatchLoader(async () => {
+            concurrency++;
+            if (maxConcurrency < concurrency) {
+                maxConcurrency = concurrency;
+            }
+            await sleep(0);
+            concurrency--;
+        }, {maxSize: 1, maxConcurrency: 2});
+        await Promise.all([b.load(), b.load(), b.load(), b.load()]);
+        expect(maxConcurrency).toBe(2);
 
     });
 

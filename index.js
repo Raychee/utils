@@ -13,8 +13,8 @@ const {
     shrink,
     diff,
     traverse,
-    deepEqual,
-    merge2Level,
+    isEqual,
+    merge,
     flatten,
     readOnly,
 } = require('./lib/object');
@@ -55,8 +55,8 @@ module.exports = {
     shrink,
     diff,
     traverse,
-    deepEqual,
-    merge2Level,
+    isEqual,
+    merge,
     flatten,
     readOnly,
 
