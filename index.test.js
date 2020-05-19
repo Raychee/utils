@@ -52,6 +52,9 @@ describe('test', () => {
         expect(o).toStrictEqual(
             {a: 1, b: {e: [null, 1], f: {g: 3}}, i: {}}
         );
+
+        o = {a: 1, b: {c: null, d: undefined, e: [null, 1], f: {g: 3, h: undefined}}, i: {j: null}};
+        expect(shrink(o, {predicate: v => v === 1})).toStrictEqual({a: 1});
     });
 
     test('diff', () => {
