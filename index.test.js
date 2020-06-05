@@ -132,15 +132,18 @@ describe('test', () => {
 
     test('dedup', async () => {
 
+        let v1, v2, v3, v4;
+        
         let i = 0;
         let fn = dedup(async () => {
             await sleep(0);
             return i++;
         });
-        let [v1, v2] = await Promise.all([fn(), fn()]);
+        [v1, v2] = await Promise.all([fn(), fn()]);
         expect(v1).toBe(0);
         expect(v2).toBe(0);
         expect(i).toBe(1);
+        expect(fn.states).toStrictEqual({});
 
         fn = dedup(async (i) => {
             await sleep(0);
@@ -149,6 +152,7 @@ describe('test', () => {
         [v1, v2] = await Promise.all([fn(1), fn(2)]);
         expect(v1).toBe(1);
         expect(v2).toBe(2);
+        expect(fn.states).toStrictEqual({});
 
         fn = dedup(async (i) => {
             await sleep(0);
@@ -157,6 +161,7 @@ describe('test', () => {
         [v1, v2] = await Promise.all([fn(1), fn(2)]);
         expect(v1).toBe(1);
         expect(v2).toBe(1);
+        expect(fn.states).toStrictEqual({});
 
         i = 0;
         fn = dedup(async () => {
@@ -174,6 +179,8 @@ describe('test', () => {
         v1 = await fn();
         expect(v1).toBe(1);
         expect(i).toBe(2);
+        await sleep(200);
+        expect(fn.states).toStrictEqual({});
 
         i = 0;
         fn = dedup(async () => {
@@ -182,6 +189,7 @@ describe('test', () => {
         });
         await expect(fn()).rejects.toThrow('0');
         await expect(fn()).rejects.toThrow('1');
+        expect(fn.states).toStrictEqual({});
 
         fn = dedup(async (i) => {
             await sleep(0);
@@ -191,6 +199,20 @@ describe('test', () => {
         expect(v1).toBe(1);
         expect(v2).toBe(2);
         expect(v3).toBe(1);
+        expect(fn.states).toStrictEqual({});
+        
+        i = 0;
+        fn = dedup(async () => {
+            await sleep(0);
+            return i++;
+        }, {limit: 2});
+        [v1, v2, v3, v4] = await Promise.all([fn(), fn(), fn(), fn()]);
+        expect(v1).toBe(0);
+        expect(v2).toBe(1);
+        expect(v3).toBe(1);
+        expect(v4).toBe(1);
+        expect(fn.states).toStrictEqual({});
+        
     });
 
     test('readOnly', () => {
