@@ -208,7 +208,6 @@ describe('test', () => {
         expect(v3).toBe(1);
         expect(fn.state()).toStrictEqual({queue: 0});
         
-        console.log('#############test');
         
         i = 0; j = 0; concurrency = 0; maxConcurrency = 0;
         fn = dedup(async (x) => {
@@ -224,9 +223,7 @@ describe('test', () => {
             }
         }, {queue: 1});
         ps = [fn('i'), fn('i'), fn('i'), fn('j'), fn('j'), fn('j'), fn('j')];
-        console.log('sleep');
         await sleep(9);
-        console.log('awake');
         expect(fn.state('i')).toStrictEqual({queue: 0});
         expect(fn.state('i').running).toBeUndefined();
         expect(fn.state('j')).toMatchObject({queue: 1});
