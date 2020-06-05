@@ -132,14 +132,20 @@ describe('test', () => {
 
     test('dedup', async () => {
 
-        let v1, v2, v3, v4;
+        let v1, v2, v3, ps, vs, fn, i, j, t;
         
-        let i = 0;
-        let fn = dedup(async () => {
-            await sleep(0);
+        i = 0;
+        fn = dedup(async () => {
+            await sleep(10);
             return i++;
         });
-        [v1, v2] = await Promise.all([fn(), fn()]);
+        ps = [fn(), fn()];
+        await sleep(1);
+        expect(Object.keys(fn.states)).toStrictEqual(['[]']);
+        await expect(fn.wait()).resolves.toBeUndefined();
+        t = Date.now();
+        [v1, v2] = await Promise.all(ps);
+        expect(Date.now()).toBeLessThanOrEqual(t + 5);
         expect(v1).toBe(0);
         expect(v2).toBe(0);
         expect(i).toBe(1);
@@ -201,18 +207,54 @@ describe('test', () => {
         expect(v3).toBe(1);
         expect(fn.states).toStrictEqual({});
         
-        i = 0;
-        fn = dedup(async () => {
+        i = 0; j = 0;
+        fn = dedup(async (x) => {
             await sleep(0);
-            return i++;
+            if (x === 'i') {
+                return i++;
+            } else if (x === 'j') {
+                return j++;
+            }
         }, {limit: 2});
-        [v1, v2, v3, v4] = await Promise.all([fn(), fn(), fn(), fn()]);
-        expect(v1).toBe(0);
-        expect(v2).toBe(1);
-        expect(v3).toBe(1);
-        expect(v4).toBe(1);
+        vs = await Promise.all([
+            fn('i'), fn('i'), fn('i'), fn('j'), fn('j'), fn('j'), fn('j'),
+        ]);
+        expect(vs[0]).toBe(0);
+        expect(vs[1]).toBe(1);
+        expect(vs[2]).toBe(1);
+        expect(vs[3]).toBe(0);
+        expect(vs[4]).toBe(1);
+        expect(vs[5]).toBe(1);
+        expect(vs[6]).toBe(1);
         expect(fn.states).toStrictEqual({});
+        await expect(fn.wait()).resolves.toBeUndefined();
         
+    });
+    
+    test('limit', async () => {
+        let concurrency, maxConcurrency, fn, ps, vs, t;
+        
+        concurrency = 0; maxConcurrency = 0;
+        fn = limit(async (x) => {
+            concurrency++;
+            if (maxConcurrency < concurrency) maxConcurrency = concurrency;
+            await sleep(10);
+            concurrency--;
+            return x + 1;
+        }, 2);
+        ps = [fn(0), fn(1), fn(2), fn(3)];
+        await sleep(1);
+        expect(fn.concurrency()).toBe(2);
+        expect(fn.queue()).toBe(2);
+        await expect(fn.wait()).resolves.toBeUndefined();
+        t = Date.now();
+        vs = await Promise.all(ps);
+        expect(Date.now()).toBeLessThanOrEqual(t + 5);
+        expect(vs[0]).toBe(1);
+        expect(vs[1]).toBe(2);
+        expect(vs[2]).toBe(3);
+        expect(vs[3]).toBe(4);
+        expect(maxConcurrency).toBe(2);
     });
 
     test('readOnly', () => {
