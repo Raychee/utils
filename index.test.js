@@ -252,7 +252,7 @@ describe('test', () => {
         fn = limit(async (x) => {
             concurrency++;
             if (maxConcurrency < concurrency) maxConcurrency = concurrency;
-            await sleep(10);
+            await sleep(100);
             concurrency--;
             return x + 1;
         }, 2);
@@ -269,6 +269,26 @@ describe('test', () => {
         expect(vs[2]).toBe(3);
         expect(vs[3]).toBe(4);
         expect(maxConcurrency).toBe(2);
+        
+        ps = [];
+        t = Date.now();
+        ps.push(await fn.waitForCall(4));
+        expect(Date.now()).toBeLessThanOrEqual(t + 5);
+        t = Date.now();
+        ps.push(await fn.waitForCall(5));
+        expect(Date.now()).toBeLessThanOrEqual(t + 5);
+        t = Date.now();
+        ps.push(await fn.waitForCall(6));
+        expect(Date.now()).toBeGreaterThan(t + 80);
+        t = Date.now();
+        expect(await ps[0]()).toBe(5);
+        expect(Date.now()).toBeLessThanOrEqual(t + 5);
+        t = Date.now();
+        expect(await ps[1]()).toBe(6);
+        expect(Date.now()).toBeLessThanOrEqual(t + 5);
+        t = Date.now();
+        expect(await ps[2]()).toBe(7);
+        expect(Date.now()).toBeGreaterThan(t + 80);
     });
 
     test('readOnly', () => {
