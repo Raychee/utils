@@ -1,3 +1,5 @@
+const {isPlainObject, isEmpty} = require('lodash');
+
 const {
     sleep,
     isThenable,
@@ -55,6 +57,10 @@ describe('test', () => {
 
         o = {a: 1, b: {c: null, d: undefined, e: [null, 1], f: {g: 3, h: undefined}}, i: {j: null}};
         expect(shrink(o, {predicate: v => v === 1})).toStrictEqual({a: 1});
+        
+        expect(shrink({a: {b: {}}}, {inplace: true, predicate: (v) => !(isPlainObject(v) && isEmpty(v))})).toStrictEqual({});
+        expect(shrink({a: {b: {}}}, {inplace: false, predicate: (v) => !(isPlainObject(v) && isEmpty(v))})).toStrictEqual({});
+        
     });
 
     test('diff', () => {
