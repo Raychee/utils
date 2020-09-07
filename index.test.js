@@ -28,6 +28,9 @@ const {
     randomInt,
     randomString,
     randomMacAddress,
+    unionRanges,
+    intersectRanges,
+    
     ensureThunk,
     ensureThunkCall,
     ensureThunkSync,
@@ -411,4 +414,16 @@ describe('test', () => {
         expect(v).toStrictEqual({y: 2});
     });
 
+    test('unionRanges', () => {
+        expect(unionRanges([[1, 3], [2, 5]])).toStrictEqual([[1, 5]]);
+        expect(unionRanges([[1, 3], [2, null]])).toStrictEqual([[1, null]]);
+        expect(unionRanges([[1, 3], [4, 5]])).toStrictEqual([[1, 3], [4, 5]]);
+        expect(unionRanges([[1, null], [null, 5]])).toStrictEqual([[null, null]]);
+    });
+    
+    test('intersectRanges', () => {
+        expect(intersectRanges([[1, 3]], [[2, 5]])).toStrictEqual([[2, 3]]);
+        expect(intersectRanges([[1, 3], [4, 6]], [[2, 5]])).toStrictEqual([[2, 3], [4, 5]]);
+        expect(intersectRanges([[null, 3], [4, null]], [[2, null]])).toStrictEqual([[2, 3], [4, null]]);
+    });
 });

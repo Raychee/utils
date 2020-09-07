@@ -32,6 +32,11 @@ const {
     randomInt,
     randomString,
     randomMacAddress,
+    unionRanges,
+    intersectRanges,
+} = require('./lib/math');
+
+const {
     ensureThunk,
     ensureThunkCall,
     ensureThunkSync,
@@ -70,6 +75,9 @@ module.exports = {
     randomInt,
     randomString,
     randomMacAddress,
+    unionRanges,
+    intersectRanges,
+    
     ensureThunk,
     ensureThunkCall,
     ensureThunkSync,
