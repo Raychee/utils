@@ -415,15 +415,38 @@ describe('test', () => {
     });
 
     test('unionRanges', () => {
-        expect(unionRanges([[1, 3], [2, 5]])).toStrictEqual([[1, 5]]);
-        expect(unionRanges([[1, 3], [2, null]])).toStrictEqual([[1, null]]);
-        expect(unionRanges([[1, 3], [4, 5]])).toStrictEqual([[1, 3], [4, 5]]);
-        expect(unionRanges([[1, null], [null, 5]])).toStrictEqual([[null, null]]);
+        expect(unionRanges([{gte: 1, lte: 3}, {gte: 2, lte: 5}]))
+            .toStrictEqual([{gte: 1, lte: 5}]);
+        expect(unionRanges({gte: 1, lte: 3}, {gte: 2, lte: 5}))
+            .toStrictEqual([{gte: 1, lte: 5}]);
+        expect(unionRanges([{gte: 1, lte: 3}, {gt: 3, lt: 5}]))
+            .toStrictEqual([{gte: 1, lt: 5}]);
+        expect(unionRanges([{gte: 1, lt: 3}, {gt: 3, lt: 5}]))
+            .toStrictEqual([{gte: 1, lt: 3}, {gt: 3, lt: 5}]);
+        expect(unionRanges([{lt: 3}, {gt: 2}, {gte: 9, lt: 10}]))
+            .toStrictEqual([{}]);
+        expect(unionRanges([{lt: 3}, {lte: 3}, {lt: 1}]))
+            .toStrictEqual([{lte: 3}]);
+        expect(unionRanges([{}, {lte: 3}, {lt: 1}]))
+            .toStrictEqual([{}]);
+        expect(unionRanges([]))
+            .toStrictEqual([]);
     });
     
     test('intersectRanges', () => {
-        expect(intersectRanges([[1, 3]], [[2, 5]])).toStrictEqual([[2, 3]]);
-        expect(intersectRanges([[1, 3], [4, 6]], [[2, 5]])).toStrictEqual([[2, 3], [4, 5]]);
-        expect(intersectRanges([[null, 3], [4, null]], [[2, null]])).toStrictEqual([[2, 3], [4, null]]);
+        expect(intersectRanges([{gte: 1, lte: 3}], [{gt: 2, lte: 5}]))
+            .toStrictEqual([{gt: 2, lte: 3}]);
+        expect(intersectRanges({gte: 1, lte: 3}, {gt: 2, lte: 5}))
+            .toStrictEqual([{gt: 2, lte: 3}]);
+        expect(intersectRanges([{gte: 1, lt: 3}, {gt: 3}], [{gt: 2, lte: 5}]))
+            .toStrictEqual([{gt: 2, lt: 3}, {gt: 3, lte: 5}]);
+        expect(intersectRanges([{lt: 3}, {gt: 5}], [{gt: 2, lte: 5}]))
+            .toStrictEqual([{gt: 2, lt: 3}]);
+        expect(intersectRanges([{}], [{gt: 2, lte: 5}, {gt: 6}]))
+            .toStrictEqual([{gt: 2, lte: 5}, {gt: 6}]);
+        expect(intersectRanges([], [{gt: 2, lte: 5}, {gt: 6}]))
+            .toStrictEqual([]);
+        expect(intersectRanges({gt: 2}, {lt: 1}))
+            .toStrictEqual([]);
     });
 });
