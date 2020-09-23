@@ -217,7 +217,6 @@ describe('test', () => {
         expect(v3).toBe(1);
         expect(fn.state()).toStrictEqual({queue: 0});
         
-        
         i = 0; j = 0; concurrency = 0; maxConcurrency = 0;
         fn = dedup(async (x) => {
             await sleep(0);
@@ -251,6 +250,35 @@ describe('test', () => {
         expect(maxConcurrency).toBe(1);
         expect(fn.state('j')).toStrictEqual({queue: 0});
         await expect(fn.wait()).resolves.toBeUndefined();
+        
+        fn = dedup(async () => {
+            await sleep(0);
+            throw new Error('dedup fn error');
+        });
+        expect(fn()).rejects.toThrow('dedup fn error');
+
+        i = 0; j = 0; concurrency = 0; maxConcurrency = 0;
+        fn = dedup(async (i) => {
+            concurrency++;
+            if (maxConcurrency < concurrency) maxConcurrency = concurrency;
+            await sleep(10);
+            concurrency--;
+            return i;
+        }, {within: 100, queue: 1, key: null});
+        ps = [fn(1), fn(2), fn(3), fn(4)];
+        t = Date.now();
+        await expect(ps[0]).resolves.toBe(1);
+        expect(Date.now()).toBeLessThanOrEqual(t + 20);
+        t = Date.now();
+        await expect(ps[1]).resolves.toBe(2);
+        expect(Date.now()).toBeGreaterThanOrEqual(t + 100);
+        expect(Date.now()).toBeLessThanOrEqual(t + 120);
+        t = Date.now();
+        await expect(ps[2]).resolves.toBe(2);
+        expect(Date.now()).toBeLessThanOrEqual(t + 5);
+        t = Date.now();
+        await expect(ps[3]).resolves.toBe(2);
+        expect(Date.now()).toBeLessThanOrEqual(t + 5);
         
     });
     
