@@ -14,6 +14,7 @@ const {
     diff,
     traverse,
     isEqual,
+    isMatch,
     merge,
     flatten,
     readOnly,
@@ -91,6 +92,29 @@ describe('test', () => {
             [['c', 'e'], [4, 5]],
             [['c', 'f'], new Date(0)],
         ]);
+    });
+
+    test('isMatch', () => {
+        expect(isMatch(
+            {a: 1, b: 2, c: {d: '3', e: [4, 5], f: new Date(0)}},
+            {a: 1, c: {e: [4, 5], f: new Date(0)}},
+        )).toBe(true);
+        expect(isMatch(
+            {a: 1, b: 2, c: {d: '3', e: [4, 5], f: new Date(0)}},
+            {a: 100, c: {e: [4, 5], f: new Date(0)}},
+        )).toBe(false);
+        expect(isMatch(
+            {a: 1, b: 2, c: {d: '3', e: [4, 5], f: new Date(0)}},
+            {c: {e: [4, 6]}},
+        )).toBe(false);
+        expect(isMatch(
+            {a: 1, b: 2, c: {d: '3', e: [4, 5], f: new Date(0)}},
+            {c: {f: new Date(1)}},
+        )).toBe(false);
+        expect(isMatch(
+            {a: 1, b: 2, c: {d: '3', e: [4, 5], f: new Date(0)}},
+            {a: 1, c: {e: [4, 5], f: new Date(0), x: null}, y: null},
+        )).toBe(true);
     });
 
     test('merge', () => {
