@@ -26,6 +26,7 @@ const {
     stringifyWith,
     errorToString,
     replaceAll,
+    capitalize,
 } = require('./lib/string');
 
 const {
@@ -72,6 +73,7 @@ module.exports = {
     stringifyWith,
     errorToString,
     replaceAll,
+    capitalize,
 
     random,
     randomInt,
