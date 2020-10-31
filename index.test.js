@@ -24,6 +24,8 @@ const {
     stringifyWith,
     errorToString,
     replaceAll,
+    capitalize,
+    interpolate,
 
     random,
     randomInt,
@@ -366,6 +368,12 @@ describe('test', () => {
         expect(obj.e()).toBe(1);
         expect(() => obj.e.name = 'newName').toThrow('this object is read only');
 
+    });
+    
+    test('interpolate', () => {
+        expect(interpolate('${a} and ${b}', {a: 1, b: '2'})).toBe('1 and 2');
+        expect(interpolate('${a} and ${c}', {a: 1, b: '2'})).toBe('1 and undefined');
+        expect(interpolate('${a} and ${c}', {a: 1, b: '2'}, {defaultValue: ''})).toBe('1 and ');
     });
 
     test('BatchLoader', async () => {
