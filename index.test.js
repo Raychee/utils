@@ -374,6 +374,9 @@ describe('test', () => {
         expect(interpolate('${a} and ${b}', {a: 1, b: '2'})).toBe('1 and 2');
         expect(interpolate('${a} and ${c}', {a: 1, b: '2'})).toBe('1 and undefined');
         expect(interpolate('${a} and ${c}', {a: 1, b: '2'}, {defaultValue: ''})).toBe('1 and ');
+        expect(interpolate('${a} and \\${b}', {a: 1, b: '2'})).toBe('1 and ${b}');
+        expect(interpolate('a and b', {a: 1, b: '2'})).toBe('a and b');
+        expect(interpolate('${a.x} and ${b[1]}', {a: {x: 'x'}, b: ['0', '1']})).toBe('x and 1');
     });
 
     test('BatchLoader', async () => {
