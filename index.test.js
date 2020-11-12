@@ -275,7 +275,27 @@ describe('test', () => {
         expect(vs[6]).toBe(1);
         expect(maxConcurrency).toBe(1);
         expect(fn.state('j')).toStrictEqual({queue: 0});
+        await expect(fn('j')).resolves.toBe(2);
+        await expect(fn('j')).resolves.toBe(3);
         await expect(fn.wait()).resolves.toBeUndefined();
+        
+        ps = []; 
+        j = 0;
+        for (let i = 0; i < 10000; i++) {
+            ps.push(fn('j'));
+        }
+        await expect(ps[0]).resolves.toBe(0);
+        await expect(ps[1]).resolves.toBe(1);
+        await expect(ps[2]).resolves.toBe(1);
+        expect(j).toBe(2);
+        ps = [];
+        for (let i = 0; i < 10000; i++) {
+            ps.push(fn('j'));
+        }
+        await expect(ps[0]).resolves.toBe(2);
+        await expect(ps[1]).resolves.toBe(3);
+        await expect(ps[2]).resolves.toBe(3);
+        expect(j).toBe(4);
         
         fn = dedup(async () => {
             await sleep(0);
@@ -290,7 +310,7 @@ describe('test', () => {
             await sleep(10);
             concurrency--;
             return i;
-        }, {within: 100, queue: 1, key: null});
+        }, {within: 100, queue: 1, key: null, debug: true});
         ps = [fn(1), fn(2), fn(3), fn(4)];
         t = Date.now();
         await expect(ps[0]).resolves.toBe(1);
