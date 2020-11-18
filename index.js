@@ -18,6 +18,7 @@ const {
     merge,
     flatten,
     readOnly,
+    biMapObject,
 } = require('./lib/object');
 
 const {
@@ -68,6 +69,7 @@ module.exports = {
     merge,
     flatten,
     readOnly,
+    biMapObject,
 
     safeJSONStringify,
     stringify,

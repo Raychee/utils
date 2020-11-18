@@ -18,6 +18,7 @@ const {
     merge,
     flatten,
     readOnly,
+    biMapObject,
 
     safeJSONStringify,
     stringify,
@@ -388,6 +389,19 @@ describe('test', () => {
         expect(obj.e()).toBe(1);
         expect(() => obj.e.name = 'newName').toThrow('this object is read only');
 
+    });
+    
+    test('biMapObject', () => {
+        
+        const obj = biMapObject({a: 'b', c: 'd'});
+        expect(obj).toStrictEqual({a: 'b', b: 'a', c: 'd', d: 'c'});
+        expect(() => obj.x = 1).toThrow('value must be a string in biMap object, got 1');
+        obj.x = 'y';
+        expect(obj).toStrictEqual({a: 'b', b: 'a', c: 'd', d: 'c', x: 'y', y: 'x'});
+        obj.p = 'y';
+        expect(obj).toStrictEqual({a: 'b', b: 'a', c: 'd', d: 'c', p: 'y', y: 'p'});
+        obj.a = 'c';
+        expect(obj).toStrictEqual({a: 'c', c: 'a', p: 'y', y: 'p'});
     });
     
     test('interpolate', () => {
