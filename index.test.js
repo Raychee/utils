@@ -402,6 +402,8 @@ describe('test', () => {
         expect(obj).toStrictEqual({a: 'b', b: 'a', c: 'd', d: 'c', p: 'y', y: 'p'});
         obj.a = 'c';
         expect(obj).toStrictEqual({a: 'c', c: 'a', p: 'y', y: 'p'});
+        delete obj.c;
+        expect(obj).toStrictEqual({p: 'y', y: 'p'});
     });
     
     test('interpolate', () => {
