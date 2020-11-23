@@ -1,3 +1,6 @@
+"use strict";
+
+
 const {isPlainObject, isEmpty} = require('lodash');
 
 const {
@@ -17,6 +20,7 @@ const {
     isMatch,
     merge,
     flatten,
+    freeze,
     readOnly,
     biMapObject,
 
@@ -375,10 +379,26 @@ describe('test', () => {
         expect(Date.now()).toBeGreaterThan(t + 80);
     });
 
+    test('freeze', () => {
+
+        const obj = freeze({
+            a: 1, b: {c: 2, d: [3, 4, 'abc']}, e: function () {
+                return this.a;
+            }
+        });
+        expect(obj.a).toBe(1);
+        expect(() => obj.a = 3).toThrow(TypeError);
+        expect(obj.b.c).toBe(2);
+        expect(() => obj.b.d.push(5)).toThrow(TypeError);
+        expect(() => obj.b.d = 5).toThrow(TypeError);
+        expect(obj.e()).toBe(1);
+
+    });
+
     test('readOnly', () => {
 
         const obj = readOnly({
-            a: 1, b: {c: 2, d: [3, 4]}, e: function () {
+            a: 1, b: {c: 2, d: [3, 4, 'abc']}, e: function () {
                 return this.a;
             }
         });

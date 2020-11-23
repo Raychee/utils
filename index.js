@@ -17,6 +17,7 @@ const {
     isMatch,
     merge,
     flatten,
+    freeze,
     readOnly,
     biMapObject,
 } = require('./lib/object');
@@ -68,6 +69,7 @@ module.exports = {
     isMatch,
     merge,
     flatten,
+    freeze,
     readOnly,
     biMapObject,
 
