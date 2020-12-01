@@ -17,6 +17,7 @@ const {
     isMatch,
     merge,
     flatten,
+    clone,
     freeze,
     readOnly,
     biMapObject,
@@ -29,7 +30,7 @@ const {
     errorToString,
     replaceAll,
     capitalize,
-    interpolate,
+    format,
 } = require('./lib/string');
 
 const {
@@ -69,6 +70,7 @@ module.exports = {
     isMatch,
     merge,
     flatten,
+    clone,
     freeze,
     readOnly,
     biMapObject,
@@ -79,7 +81,7 @@ module.exports = {
     errorToString,
     replaceAll,
     capitalize,
-    interpolate,
+    format,
 
     random,
     randomInt,

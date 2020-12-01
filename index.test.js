@@ -20,6 +20,7 @@ const {
     isMatch,
     merge,
     flatten,
+    clone,
     freeze,
     readOnly,
     biMapObject,
@@ -30,7 +31,7 @@ const {
     errorToString,
     replaceAll,
     capitalize,
-    interpolate,
+    format,
 
     random,
     randomInt,
@@ -382,7 +383,7 @@ describe('test', () => {
     test('freeze', () => {
 
         const obj = freeze({
-            a: 1, b: {c: 2, d: [3, 4, 'abc']}, e: function () {
+            a: 1, b: {c: 2, d: [3, 4, 'abc', {f: 5}]}, e: function () {
                 return this.a;
             }
         });
@@ -391,6 +392,7 @@ describe('test', () => {
         expect(obj.b.c).toBe(2);
         expect(() => obj.b.d.push(5)).toThrow(TypeError);
         expect(() => obj.b.d = 5).toThrow(TypeError);
+        expect(() => obj.b.d[3].f = 6).toThrow(TypeError);
         expect(obj.e()).toBe(1);
 
     });
@@ -426,13 +428,22 @@ describe('test', () => {
         expect(obj).toStrictEqual({p: 'y', y: 'p'});
     });
     
-    test('interpolate', () => {
-        expect(interpolate('${a} and ${b}', {a: 1, b: '2'})).toBe('1 and 2');
-        expect(interpolate('${a} and ${c}', {a: 1, b: '2'})).toBe('1 and undefined');
-        expect(interpolate('${a} and ${c}', {a: 1, b: '2'}, {defaultValue: ''})).toBe('1 and ');
-        expect(interpolate('${a} and \\${b}', {a: 1, b: '2'})).toBe('1 and ${b}');
-        expect(interpolate('a and b', {a: 1, b: '2'})).toBe('a and b');
-        expect(interpolate('${a.x} and ${b[1]}', {a: {x: 'x'}, b: ['0', '1']})).toBe('x and 1');
+    test('format', () => {
+        expect(format('${a} and ${b}', {a: 1, b: '2'})).toBe('1 and 2');
+        expect(() => format('${a} and ${c}', {a: 1, b: '2'})).toThrow(ReferenceError);
+        expect(format('a and b', {a: 1, b: '2'})).toBe('a and b');
+        expect(format('${a.x} and ${b[1]}', {a: {x: 'x'}, b: ['0', '1']})).toBe('x and 1');
+        expect(format('${a.x}', {a: {x: 5}})).toBe('5');
+        expect(format('${a.x}', {a: {x: 5}}, {keepOriginalValueForSingleExpr: true})).toBe(5);
+        expect(format('${a.x}', {a: {y: 5}}, {defaultPropertyValue: 0})).toBe('0');
+        expect(format('${a.x}', {a: {y: 5}}, 
+            {defaultPropertyValue: 0, keepOriginalValueForSingleExpr: true})).toBe(0);
+        expect(() => format('${a.x}', {a: {y: 5}}, {throwErrorForMissingProperty: true})).toThrow(ReferenceError);
+        expect(() => format('${b[2]}', {b: [1]}, {throwErrorForMissingProperty: true})).toThrow(ReferenceError);
+        expect(() => format('${b[0].x}', {b: [{y: 5}]}, {throwErrorForMissingProperty: true})).toThrow(ReferenceError);
+        expect(format('value is ${b[0].x}', {b: [{y: 5}]})).toBe('value is undefined');
+        expect(() => format('value is ${b[1].y}', {b: [{y: 5}]})).toThrow(TypeError);
+        expect(format('${ a.x } + 5 is ${a.x + 5}', {a: {x: 5}})).toBe('5 + 5 is 10');
     });
 
     test('BatchLoader', async () => {
