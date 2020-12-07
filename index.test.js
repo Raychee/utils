@@ -26,6 +26,7 @@ const {
     biMapObject,
 
     safeJSONStringify,
+    stableJSONStringify,
     stringify,
     stringifyWith,
     errorToString,
@@ -426,6 +427,20 @@ describe('test', () => {
         expect(obj).toStrictEqual({a: 'c', c: 'a', p: 'y', y: 'p'});
         delete obj.c;
         expect(obj).toStrictEqual({p: 'y', y: 'p'});
+    });
+    
+    test('stableStringify', () => {
+        expect(stableJSONStringify({c: 1, b: {arr: ['a', 'c', {x: null, d: 3, y: undefined}]}}))
+            .toBe('{"b":{"arr":["a","c",{"d":3,"x":null}]},"c":1}');
+        const circular = {a: 1};
+        circular.cir = circular;
+        expect(() => stableJSONStringify(circular)).toThrow(TypeError);
+        expect(stableJSONStringify(circular, {circularValue: 'circular'}))
+            .toBe('{"a":1,"cir":"circular"}')
+        expect(stableJSONStringify(
+            {f: () => 'haha', a: 1},
+            {transform: (v) => typeof v === 'function' ? v.toString() : v}
+        )).toBe('{"a":1,"f":"() => \'haha\'"}');
     });
     
     test('format', () => {

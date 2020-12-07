@@ -25,6 +25,7 @@ const {
 
 const {
     safeJSONStringify,
+    stableJSONStringify,
     stringify,
     stringifyWith,
     errorToString,
@@ -76,6 +77,7 @@ module.exports = {
     biMapObject,
 
     safeJSONStringify,
+    stableJSONStringify,
     stringify,
     stringifyWith,
     errorToString,
