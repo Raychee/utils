@@ -22,6 +22,7 @@ const {
     flatten,
     clone,
     freeze,
+    stablize,
     readOnly,
     biMapObject,
 
@@ -177,11 +178,13 @@ describe('test', () => {
         let concurrency, maxConcurrency, v1, v2, v3, ps, vs, fn, i, j, t;
         
         i = 0;
-        fn = dedup(async () => {
+        let this_ = {x: 0};
+        fn = dedup(async function () {
             await sleep(10);
+            this.x++;
             return i++;
         });
-        ps = [fn(), fn()];
+        ps = [fn.call(this_), fn.call(this_)];
         await sleep(1);
         expect(fn.state()).toMatchObject({queue: 0});
         expect(fn.state().running).toBeDefined();
@@ -192,6 +195,7 @@ describe('test', () => {
         expect(v1).toBe(0);
         expect(v2).toBe(0);
         expect(i).toBe(1);
+        expect(this_.x).toBe(1);
         expect(fn.state()).toStrictEqual({queue: 0});
 
         fn = dedup(async (i) => {

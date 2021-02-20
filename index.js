@@ -19,6 +19,7 @@ const {
     flatten,
     clone,
     freeze,
+    stablize,
     readOnly,
     biMapObject,
 } = require('./lib/object');
@@ -73,6 +74,7 @@ module.exports = {
     flatten,
     clone,
     freeze,
+    stablize,
     readOnly,
     biMapObject,
 
