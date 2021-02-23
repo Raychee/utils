@@ -33,6 +33,7 @@ const {
     errorToString,
     replaceAll,
     capitalize,
+    truncate,
     format,
 
     random,
@@ -445,6 +446,22 @@ describe('test', () => {
             {f: () => 'haha', a: 1},
             {transform: (v) => typeof v === 'function' ? v.toString() : v}
         )).toBe('{"a":1,"f":"() => \'haha\'"}');
+    });
+    
+    test('truncate', () => {
+        
+        expect(truncate('abcdefghi', {maxLength: 4, pos: 'start'})).toBe('...');
+        expect(truncate('abcdefghi', {maxLength: 5, pos: 'start'})).toBe('... i');
+        expect(truncate('abcdefghi', {maxLength: 6, pos: 'start'})).toBe('... hi');
+        expect(truncate('abcdefghi', {maxLength: 5, pos: 'middle'})).toBe('...');
+        expect(truncate('abcdefghi', {maxLength: 6, pos: 'middle'})).toBe('a ...');
+        expect(truncate('abcdefghi', {maxLength: 7, pos: 'middle'})).toBe('a ... i');
+        expect(truncate('abcdefghi', {maxLength: 8, pos: 'middle'})).toBe('ab ... i');
+        expect(truncate('abcdefghi', {maxLength: 4, pos: 'end'})).toBe('...');
+        expect(truncate('abcdefghi', {maxLength: 5, pos: 'end'})).toBe('a ...');
+        expect(truncate('abcdefghi', {maxLength: 7, pos: 'end'})).toBe('abc ...');
+        expect(truncate('abcd', {maxLength: 3, ellipsis: '....', pos: 'start'})).toBe('abcd');
+        
     });
     
     test('format', () => {

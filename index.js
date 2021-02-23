@@ -32,6 +32,7 @@ const {
     errorToString,
     replaceAll,
     capitalize,
+    truncate,
     format,
 } = require('./lib/string');
 
@@ -85,6 +86,7 @@ module.exports = {
     errorToString,
     replaceAll,
     capitalize,
+    truncate,
     format,
 
     random,
